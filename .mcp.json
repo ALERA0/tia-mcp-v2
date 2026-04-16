@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "serena",
+      "args": [
+        "start-mcp-server",
+        "--context=claude-code",
+        "--project",
+        "c:/Users/alpar/Desktop/PLC/Tia-port-mcp"
+      ],
+      "env": {}
+    },
+    "tia-mcp-V2": {
+      "type": "stdio",
+      "command": "C:\\Users\\alpar\\Desktop\\PLC\\TiaOpenessV2\\src\\TiaMcpV2\\bin\\Release\\net48\\TiaMcpV2.exe",
+      "args": [],
+      "env": {}
+    }
+  }
+}

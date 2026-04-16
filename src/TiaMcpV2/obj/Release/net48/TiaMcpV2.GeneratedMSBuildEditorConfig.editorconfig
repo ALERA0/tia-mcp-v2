@@ -1,0 +1,8 @@
+is_global = true
+build_property.RootNamespace = TiaMcpV2
+build_property.ProjectDir = C:\Users\alpar\Desktop\PLC\TiaOpenessV2\src\TiaMcpV2\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.CsWinRTUseWindowsUIXamlProjections = false
+build_property.EffectiveAnalysisLevelStyle = 
+build_property.EnableCodeStyleSeverity = 
