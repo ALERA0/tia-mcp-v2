@@ -210,39 +210,124 @@ namespace TiaMcpV2.Core
         public Device? FindDevice(string deviceName)
         {
             EnsureProjectOpen();
-            return _project!.Devices.FirstOrDefault(d =>
+
+            // 1. Exact match
+            var device = _project!.Devices.FirstOrDefault(d =>
                 d.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase));
+            if (device != null) return device;
+
+            // 2. Try trimmed input (user may pass "PLC_1" which is a DeviceItem name, not Device name)
+            //    Iterate all devices, check if any DeviceItem inside matches
+            foreach (var dev in _project!.Devices)
+            {
+                foreach (var item in dev.DeviceItems)
+                {
+                    if (item.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                        return dev;
+
+                    // Also check sub-items (for rack-based configurations)
+                    foreach (var sub in item.DeviceItems)
+                    {
+                        if (sub.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                            return dev;
+                    }
+                }
+            }
+
+            // 3. Partial match — device name may contain "/" which is also the path separator
+            //    Try matching the full input against device names that contain "/"
+            device = _project!.Devices.FirstOrDefault(d =>
+                d.Name.Replace("/", "").Replace("\\", "")
+                    .Equals(deviceName.Replace("/", "").Replace("\\", ""), StringComparison.OrdinalIgnoreCase));
+            if (device != null) return device;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Resolves a device from a path string, handling device names that contain "/" characters.
+        /// Returns the device and the remaining path parts after the device name.
+        /// </summary>
+        private (Device? device, string[] remainingParts) ResolveDeviceFromPath(string path)
+        {
+            EnsureProjectOpen();
+            var normalized = path.Replace('\\', '/').Trim('/');
+            if (string.IsNullOrEmpty(normalized))
+                return (null, Array.Empty<string>());
+
+            // Strategy 1: Try full path as exact device name (handles "S7-1500/ET200MP-Station_1")
+            var device = _project!.Devices.FirstOrDefault(d =>
+                d.Name.Equals(normalized, StringComparison.OrdinalIgnoreCase));
+            if (device != null)
+                return (device, Array.Empty<string>());
+
+            // Strategy 2: Try progressively longer prefixes as device name
+            // For "S7-1500/ET200MP-Station_1/PLC_1/SubItem" try:
+            //   "S7-1500" → "S7-1500/ET200MP-Station_1" → "S7-1500/ET200MP-Station_1/PLC_1" → ...
+            var segments = normalized.Split('/');
+            for (int i = segments.Length; i >= 1; i--)
+            {
+                var candidateName = string.Join("/", segments.Take(i));
+                device = _project!.Devices.FirstOrDefault(d =>
+                    d.Name.Equals(candidateName, StringComparison.OrdinalIgnoreCase));
+                if (device != null)
+                {
+                    var remaining = segments.Skip(i).ToArray();
+                    return (device, remaining);
+                }
+            }
+
+            // Strategy 3: Try first segment as simple device name
+            device = FindDevice(segments[0]);
+            if (device != null)
+                return (device, segments.Skip(1).ToArray());
+
+            return (null, Array.Empty<string>());
         }
 
         public DeviceItem? FindDeviceItem(string path)
         {
-            EnsureProjectOpen();
-            var parts = path.Replace('\\', '/').Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0)
-                return null;
-
-            var device = FindDevice(parts[0]);
+            var (device, remainingParts) = ResolveDeviceFromPath(path);
             if (device == null)
                 return null;
 
-            if (parts.Length == 1)
+            if (remainingParts.Length == 0)
                 return device.DeviceItems.FirstOrDefault();
 
             DeviceItem? current = null;
             var items = device.DeviceItems;
 
-            for (int i = 1; i < parts.Length; i++)
+            foreach (var part in remainingParts)
             {
                 current = items.FirstOrDefault(di =>
-                    di.Name.Equals(parts[i], StringComparison.OrdinalIgnoreCase));
+                    di.Name.Equals(part, StringComparison.OrdinalIgnoreCase));
 
                 if (current == null)
-                    return null;
+                {
+                    // Fallback: search recursively in case of nested items
+                    current = FindDeviceItemRecursive(items, part);
+                    if (current == null)
+                        return null;
+                }
 
                 items = current.DeviceItems;
             }
 
             return current;
+        }
+
+        private DeviceItem? FindDeviceItemRecursive(DeviceItemComposition items, string name)
+        {
+            foreach (var item in items)
+            {
+                if (item.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return item;
+
+                var found = FindDeviceItemRecursive(item.DeviceItems, name);
+                if (found != null)
+                    return found;
+            }
+            return null;
         }
 
         #endregion
@@ -251,17 +336,52 @@ namespace TiaMcpV2.Core
 
         public PlcSoftware? FindPlcSoftware(string devicePath)
         {
-            var parts = devicePath.Replace('\\', '/').Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-            var deviceName = parts[0];
-            var device = FindDevice(deviceName);
-            if (device == null)
-                return null;
-
-            foreach (var item in device.DeviceItems)
+            // Strategy 1: Resolve through the smart device path resolver
+            var (device, _) = ResolveDeviceFromPath(devicePath);
+            if (device != null)
             {
-                var sw = GetSoftwareFrom(item);
-                if (sw != null)
-                    return sw;
+                foreach (var item in device.DeviceItems)
+                {
+                    var sw = GetSoftwareFrom(item);
+                    if (sw != null)
+                        return sw;
+                }
+            }
+
+            // Strategy 2: Input might be a DeviceItem name like "PLC_1"
+            //  Search ALL devices for a DeviceItem with PLC software matching the name
+            EnsureProjectOpen();
+            foreach (var dev in _project!.Devices)
+            {
+                foreach (var item in dev.DeviceItems)
+                {
+                    if (item.Name.Equals(devicePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var sw = GetSoftwareFrom(item);
+                        if (sw != null) return sw;
+                    }
+
+                    // Check sub-items (the actual CPU module is often nested)
+                    foreach (var sub in item.DeviceItems)
+                    {
+                        if (sub.Name.Equals(devicePath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var sw = GetSoftwareFrom(sub);
+                            if (sw != null) return sw;
+                        }
+                    }
+                }
+            }
+
+            // Strategy 3: Brute force — search ALL software in project
+            foreach (var dev in _project!.Devices)
+            {
+                foreach (var item in dev.DeviceItems)
+                {
+                    var sw = GetSoftwareFrom(item);
+                    if (sw != null && sw.Name.Equals(devicePath, StringComparison.OrdinalIgnoreCase))
+                        return sw;
+                }
             }
 
             return null;
@@ -285,15 +405,30 @@ namespace TiaMcpV2.Core
 
         public HmiTarget? FindHmiTarget(string devicePath)
         {
-            var device = FindDevice(devicePath);
-            if (device == null)
-                return null;
-
-            foreach (var item in device.DeviceItems)
+            // Use smart resolver
+            var (device, _) = ResolveDeviceFromPath(devicePath);
+            if (device != null)
             {
-                var hmi = GetHmiTargetFrom(item);
-                if (hmi != null)
-                    return hmi;
+                foreach (var item in device.DeviceItems)
+                {
+                    var hmi = GetHmiTargetFrom(item);
+                    if (hmi != null)
+                        return hmi;
+                }
+            }
+
+            // Fallback: search all devices
+            EnsureProjectOpen();
+            foreach (var dev in _project!.Devices)
+            {
+                foreach (var item in dev.DeviceItems)
+                {
+                    if (item.Name.Equals(devicePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var hmi = GetHmiTargetFrom(item);
+                        if (hmi != null) return hmi;
+                    }
+                }
             }
 
             return null;

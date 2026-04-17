@@ -24,18 +24,56 @@ using System.ComponentModel;
             }
         }
 
-        [McpServerTool(Name = "get_devices"), Description("List all devices in the project (PLCs, HMIs, drives, ET200).")]
+        [McpServerTool(Name = "get_devices"), Description("List all devices in the project (PLCs, HMIs, drives, ET200). Returns device names, types, and their DeviceItem names for use as softwarePath parameters. IMPORTANT: Use the device Name directly as softwarePath (e.g. 'PLC_1' or the full device name even if it contains '/' characters).")]
         public static string GetDevices()
         {
             try
             {
                 ServiceAccessor.Portal.EnsureProjectOpen();
-                var devices = new System.Collections.Generic.List<DeviceInfo>();
+                var devices = new System.Collections.Generic.List<object>();
                 foreach (var d in ServiceAccessor.Portal.GetDevices())
                 {
-                    devices.Add(new DeviceInfo { Name = d.Name, TypeIdentifier = d.TypeIdentifier });
+                    var deviceItems = new System.Collections.Generic.List<string>();
+                    foreach (var item in d.DeviceItems)
+                    {
+                        deviceItems.Add(item.Name);
+                        foreach (var sub in item.DeviceItems)
+                            deviceItems.Add($"  {sub.Name}");
+                    }
+
+                    // Check if this device has PLC software
+                    string? plcSoftwarePath = null;
+                    foreach (var item in d.DeviceItems)
+                    {
+                        var sw = item.GetService<Siemens.Engineering.HW.Features.SoftwareContainer>();
+                        if (sw?.Software is Siemens.Engineering.SW.PlcSoftware)
+                        {
+                            plcSoftwarePath = item.Name;
+                            break;
+                        }
+                        foreach (var sub in item.DeviceItems)
+                        {
+                            sw = sub.GetService<Siemens.Engineering.HW.Features.SoftwareContainer>();
+                            if (sw?.Software is Siemens.Engineering.SW.PlcSoftware)
+                            {
+                                plcSoftwarePath = sub.Name;
+                                break;
+                            }
+                        }
+                    }
+
+                    devices.Add(new
+                    {
+                        Name = d.Name,
+                        TypeIdentifier = d.TypeIdentifier,
+                        DeviceItems = deviceItems,
+                        SoftwarePath = plcSoftwarePath,
+                        Hint = plcSoftwarePath != null
+                            ? $"Use '{plcSoftwarePath}' as softwarePath for block/tag/type operations"
+                            : "No PLC software found on this device"
+                    });
                 }
-                return JsonHelper.ToJson(new ResponseDevices { Success = true, Devices = devices });
+                return JsonHelper.ToJson(new { Success = true, Devices = devices, Count = devices.Count });
             }
             catch (Exception ex)
             {
