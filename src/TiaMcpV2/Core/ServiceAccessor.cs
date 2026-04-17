@@ -47,5 +47,6 @@ namespace TiaMcpV2.Core
         public static SclGeneratorService SclGenerator => Get<SclGeneratorService>();
         public static IoAddressService IoAddress => Get<IoAddressService>();
         public static CodeAnalysisService CodeAnalysis => Get<CodeAnalysisService>();
+        public static TechnologyObjectService TechObjects => Get<TechnologyObjectService>();
     }
 }
