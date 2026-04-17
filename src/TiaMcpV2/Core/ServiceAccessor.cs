@@ -48,5 +48,7 @@ namespace TiaMcpV2.Core
         public static IoAddressService IoAddress => Get<IoAddressService>();
         public static CodeAnalysisService CodeAnalysis => Get<CodeAnalysisService>();
         public static TechnologyObjectService TechObjects => Get<TechnologyObjectService>();
+        public static BlockAutonomyService BlockAutonomy => Get<BlockAutonomyService>();
+        public static LadFbdGeneratorService LadFbdGenerator => Get<LadFbdGeneratorService>();
     }
 }

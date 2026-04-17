@@ -62,6 +62,8 @@ namespace TiaMcpV2
             builder.Services.AddSingleton<IoAddressService>();
             builder.Services.AddSingleton<CodeAnalysisService>();
             builder.Services.AddSingleton<TechnologyObjectService>();
+            builder.Services.AddSingleton<BlockAutonomyService>();
+            builder.Services.AddSingleton<LadFbdGeneratorService>();
 
             // Configure MCP Server with stdio transport
             builder.Services
