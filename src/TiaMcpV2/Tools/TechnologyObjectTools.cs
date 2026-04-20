@@ -265,5 +265,55 @@ namespace TiaMcpV2.Tools
                 return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message });
             }
         }
+        [McpServerTool(Name = "connect_to_to_hardware"), Description("Connect a Technology Object to a hardware module. This is ESSENTIAL after creating a TO — links it to the physical device (Counter module, Drive, Encoder, etc.). connectionType: 'auto' (tries all), 'actor'/'drive' (drive output), 'sensor'/'encoder' (encoder input), 'counter'/'measuringInput', 'outputCam', 'torque'. Example: connect_to_to_hardware('PLC_1', 'HSC_1', 'PLC_1/TM Count 1x24V', 'counter')")]
+        public static string ConnectToToHardware(
+            string softwarePath,
+            string toName,
+            string deviceItemPath,
+            string connectionType)
+        {
+            try
+            {
+                ServiceAccessor.TechObjects.ConnectToHardware(softwarePath, toName, deviceItemPath, connectionType);
+                return JsonHelper.ToJson(new ResponseMessage { Success = true, Message = $"Connected TO '{toName}' to hardware '{deviceItemPath}' (type: {connectionType})" });
+            }
+            catch (Exception ex)
+            {
+                return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message });
+            }
+        }
+
+        [McpServerTool(Name = "disconnect_to_hardware"), Description("Disconnect a Technology Object from its hardware module. connectionType: 'all', 'actor', 'sensor', 'counter', 'outputCam', 'torque'.")]
+        public static string DisconnectToHardware(
+            string softwarePath,
+            string toName,
+            string connectionType)
+        {
+            try
+            {
+                ServiceAccessor.TechObjects.DisconnectFromHardware(softwarePath, toName, connectionType);
+                return JsonHelper.ToJson(new ResponseMessage { Success = true, Message = $"Disconnected TO '{toName}' hardware (type: {connectionType})" });
+            }
+            catch (Exception ex)
+            {
+                return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message });
+            }
+        }
+
+        [McpServerTool(Name = "get_to_hardware_connection"), Description("Get hardware connection status of a Technology Object. Shows which hardware modules are connected (drive, encoder, counter, cam) and their configuration attributes.")]
+        public static string GetToHardwareConnection(
+            string softwarePath,
+            string toName)
+        {
+            try
+            {
+                var info = ServiceAccessor.TechObjects.GetHardwareConnectionInfo(softwarePath, toName);
+                return JsonHelper.ToJson(new { Success = true, TechnologyObject = toName, HardwareConnection = info });
+            }
+            catch (Exception ex)
+            {
+                return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message });
+            }
+        }
     }
 }

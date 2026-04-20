@@ -551,5 +551,319 @@ namespace TiaMcpV2.Services
         }
 
         #endregion
+
+        #region Hardware Connection
+
+        /// <summary>
+        /// Connect a Technology Object to a hardware module (DeviceItem).
+        /// This links TO → physical hardware (Counter module, Drive, Encoder, etc.)
+        /// connectionType: "actor" (drive output), "sensor" (encoder input), "measuringInput", "outputCam"
+        /// </summary>
+        public void ConnectToHardware(string softwarePath, string toName, string deviceItemPath, string connectionType)
+        {
+            var sw = _blockService.GetPlcSoftware(softwarePath);
+            var to = FindTO(sw, toName);
+            if (to == null)
+                throw new PortalException(PortalErrorCode.NotFound, $"Technology Object not found: {toName}");
+
+            var deviceItem = _portal.FindDeviceItem(deviceItemPath);
+            if (deviceItem == null)
+                throw new PortalException(PortalErrorCode.NotFound, $"Device item not found: {deviceItemPath}");
+
+            var connType = connectionType?.ToLowerInvariant() ?? "auto";
+
+            try
+            {
+                // Try each connection provider type
+                switch (connType)
+                {
+                    case "actor":
+                    case "drive":
+                        ConnectActor(to, deviceItem);
+                        break;
+
+                    case "sensor":
+                    case "encoder":
+                        ConnectSensor(to, deviceItem);
+                        break;
+
+                    case "measuringinput":
+                    case "measuring":
+                    case "counter":
+                        ConnectMeasuringInput(to, deviceItem);
+                        break;
+
+                    case "outputcam":
+                    case "cam":
+                        ConnectOutputCam(to, deviceItem);
+                        break;
+
+                    case "torque":
+                        ConnectTorque(to, deviceItem);
+                        break;
+
+                    case "auto":
+                    default:
+                        // Try all connection types until one works
+                        if (!TryConnectAuto(to, deviceItem))
+                            throw new PortalException(PortalErrorCode.OperationFailed,
+                                $"Could not auto-connect '{toName}' to '{deviceItemPath}'. " +
+                                "Specify connectionType: actor, sensor, counter, measuringInput, outputCam, torque");
+                        break;
+                }
+
+                _logger?.LogInformation("Connected TO '{TO}' to hardware '{HW}' (type: {Type})", toName, deviceItemPath, connType);
+            }
+            catch (PortalException) { throw; }
+            catch (Exception ex)
+            {
+                throw new PortalException(PortalErrorCode.OperationFailed,
+                    $"Failed to connect '{toName}' to '{deviceItemPath}': {ex.Message}", ex);
+            }
+        }
+
+        private void ConnectActor(TechnologicalInstanceDB to, DeviceItem deviceItem)
+        {
+            var provider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.AxisHardwareConnectionProvider>();
+            if (provider?.ActorInterface != null)
+            {
+                provider.ActorInterface.Connect(deviceItem);
+                return;
+            }
+            throw new PortalException(PortalErrorCode.NotSupported, "This TO does not support actor (drive) connection.");
+        }
+
+        private void ConnectSensor(TechnologicalInstanceDB to, DeviceItem deviceItem)
+        {
+            // Try AxisHardwareConnectionProvider.SensorInterface first
+            var axisProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.AxisHardwareConnectionProvider>();
+            if (axisProvider?.SensorInterface != null && axisProvider.SensorInterface.Count > 0)
+            {
+                axisProvider.SensorInterface.First().Connect(deviceItem);
+                return;
+            }
+
+            // Try EncoderHardwareConnectionProvider
+            var encoderProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.EncoderHardwareConnectionProvider>();
+            if (encoderProvider?.SensorInterface != null)
+            {
+                encoderProvider.SensorInterface.Connect(deviceItem);
+                return;
+            }
+
+            throw new PortalException(PortalErrorCode.NotSupported, "This TO does not support sensor (encoder) connection.");
+        }
+
+        private void ConnectMeasuringInput(TechnologicalInstanceDB to, DeviceItem deviceItem)
+        {
+            var provider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.MeasuringInputHardwareConnectionProvider>();
+            if (provider != null)
+            {
+                provider.Connect(deviceItem, 0); // Channel index 0
+                return;
+            }
+
+            // Fallback: try via attributes
+            try
+            {
+                to.SetAttribute("HardwareConnection", deviceItem);
+                return;
+            }
+            catch { }
+
+            throw new PortalException(PortalErrorCode.NotSupported, "This TO does not support measuring input / counter connection.");
+        }
+
+        private void ConnectOutputCam(TechnologicalInstanceDB to, DeviceItem deviceItem)
+        {
+            var provider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.OutputCamHardwareConnectionProvider>();
+            if (provider != null)
+            {
+                // Try connect via address
+                try
+                {
+                    var addr = deviceItem.GetAttribute("Output");
+                    if (addr != null)
+                    {
+                        var addrInt = Convert.ToInt32(addr);
+                        provider.Connect(addrInt);
+                        return;
+                    }
+                }
+                catch { }
+
+                throw new PortalException(PortalErrorCode.OperationFailed,
+                    "Could not connect OutputCam to device item. Try using set_to_parameter to configure the output address manually.");
+            }
+
+            throw new PortalException(PortalErrorCode.NotSupported, "This TO does not support output cam connection.");
+        }
+
+        private void ConnectTorque(TechnologicalInstanceDB to, DeviceItem deviceItem)
+        {
+            var provider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.AxisHardwareConnectionProvider>();
+            if (provider?.TorqueInterface != null)
+            {
+                provider.TorqueInterface.Connect(deviceItem);
+                return;
+            }
+            throw new PortalException(PortalErrorCode.NotSupported, "This TO does not support torque connection.");
+        }
+
+        private bool TryConnectAuto(TechnologicalInstanceDB to, DeviceItem deviceItem)
+        {
+            // Try each connection type in order of likelihood
+            try { ConnectMeasuringInput(to, deviceItem); return true; } catch { }
+            try { ConnectSensor(to, deviceItem); return true; } catch { }
+            try { ConnectActor(to, deviceItem); return true; } catch { }
+            try { ConnectOutputCam(to, deviceItem); return true; } catch { }
+            try { ConnectTorque(to, deviceItem); return true; } catch { }
+            return false;
+        }
+
+        /// <summary>
+        /// Disconnect a Technology Object from its hardware.
+        /// </summary>
+        public void DisconnectFromHardware(string softwarePath, string toName, string connectionType)
+        {
+            var sw = _blockService.GetPlcSoftware(softwarePath);
+            var to = FindTO(sw, toName);
+            if (to == null)
+                throw new PortalException(PortalErrorCode.NotFound, $"Technology Object not found: {toName}");
+
+            var connType = connectionType?.ToLowerInvariant() ?? "all";
+
+            try
+            {
+                if (connType == "actor" || connType == "drive" || connType == "all")
+                {
+                    var axisProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.AxisHardwareConnectionProvider>();
+                    try { axisProvider?.ActorInterface?.Disconnect(); } catch { }
+                }
+
+                if (connType == "sensor" || connType == "encoder" || connType == "all")
+                {
+                    var axisProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.AxisHardwareConnectionProvider>();
+                    if (axisProvider?.SensorInterface != null)
+                    {
+                        foreach (var sensor in axisProvider.SensorInterface)
+                            try { sensor.Disconnect(); } catch { }
+                    }
+
+                    var encoderProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.EncoderHardwareConnectionProvider>();
+                    try { encoderProvider?.SensorInterface?.Disconnect(); } catch { }
+                }
+
+                if (connType == "measuringinput" || connType == "counter" || connType == "all")
+                {
+                    var measProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.MeasuringInputHardwareConnectionProvider>();
+                    try { measProvider?.Disconnect(); } catch { }
+                }
+
+                if (connType == "outputcam" || connType == "cam" || connType == "all")
+                {
+                    var camProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.OutputCamHardwareConnectionProvider>();
+                    try { camProvider?.Disconnect(); } catch { }
+                }
+
+                if (connType == "torque" || connType == "all")
+                {
+                    var axisProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.AxisHardwareConnectionProvider>();
+                    try { axisProvider?.TorqueInterface?.Disconnect(); } catch { }
+                }
+
+                _logger?.LogInformation("Disconnected TO '{TO}' hardware (type: {Type})", toName, connType);
+            }
+            catch (Exception ex)
+            {
+                throw new PortalException(PortalErrorCode.OperationFailed,
+                    $"Failed to disconnect '{toName}': {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Get hardware connection status of a Technology Object.
+        /// </summary>
+        public Dictionary<string, object?> GetHardwareConnectionInfo(string softwarePath, string toName)
+        {
+            var sw = _blockService.GetPlcSoftware(softwarePath);
+            var to = FindTO(sw, toName);
+            if (to == null)
+                throw new PortalException(PortalErrorCode.NotFound, $"Technology Object not found: {toName}");
+
+            var info = new Dictionary<string, object?>();
+
+            // Check AxisHardwareConnectionProvider
+            var axisProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.AxisHardwareConnectionProvider>();
+            if (axisProvider != null)
+            {
+                info["HasAxisProvider"] = true;
+
+                if (axisProvider.ActorInterface != null)
+                {
+                    var actorAttrs = new Dictionary<string, object?>();
+                    try
+                    {
+                        foreach (var attr in axisProvider.ActorInterface.GetAttributeInfos())
+                            try { actorAttrs[attr.Name] = axisProvider.ActorInterface.GetAttribute(attr.Name); } catch { }
+                    }
+                    catch { }
+                    info["ActorInterface"] = actorAttrs;
+                }
+
+                if (axisProvider.SensorInterface != null)
+                {
+                    var sensors = new List<Dictionary<string, object?>>();
+                    foreach (var sensor in axisProvider.SensorInterface)
+                    {
+                        var sAttrs = new Dictionary<string, object?>();
+                        try
+                        {
+                            foreach (var attr in sensor.GetAttributeInfos())
+                                try { sAttrs[attr.Name] = sensor.GetAttribute(attr.Name); } catch { }
+                        }
+                        catch { }
+                        sensors.Add(sAttrs);
+                    }
+                    info["SensorInterfaces"] = sensors;
+                }
+            }
+
+            // Check MeasuringInputHardwareConnectionProvider
+            var measProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.MeasuringInputHardwareConnectionProvider>();
+            if (measProvider != null)
+            {
+                info["HasMeasuringInputProvider"] = true;
+                var measAttrs = new Dictionary<string, object?>();
+                try
+                {
+                    foreach (var attr in measProvider.GetAttributeInfos())
+                        try { measAttrs[attr.Name] = measProvider.GetAttribute(attr.Name); } catch { }
+                }
+                catch { }
+                info["MeasuringInputConnection"] = measAttrs;
+            }
+
+            // Check EncoderHardwareConnectionProvider
+            var encProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.EncoderHardwareConnectionProvider>();
+            if (encProvider != null)
+            {
+                info["HasEncoderProvider"] = true;
+            }
+
+            // Check OutputCamHardwareConnectionProvider
+            var camProvider = to.GetService<Siemens.Engineering.SW.TechnologicalObjects.Motion.OutputCamHardwareConnectionProvider>();
+            if (camProvider != null)
+            {
+                info["HasOutputCamProvider"] = true;
+            }
+
+            if (info.Count == 0)
+                info["Info"] = "No hardware connection providers found on this TO. It may use attribute-based configuration.";
+
+            return info;
+        }
+
+        #endregion
     }
 }
