@@ -50,5 +50,6 @@ namespace TiaMcpV2.Core
         public static TechnologyObjectService TechObjects => Get<TechnologyObjectService>();
         public static BlockAutonomyService BlockAutonomy => Get<BlockAutonomyService>();
         public static LadFbdGeneratorService LadFbdGenerator => Get<LadFbdGeneratorService>();
+        public static ServoDriveService ServoDrive => Get<ServoDriveService>();
     }
 }
