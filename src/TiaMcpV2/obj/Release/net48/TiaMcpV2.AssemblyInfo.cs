@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TiaMcpV2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+457755d3fc6d84825a4357a8fac1cb68777e6ac4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b6a5dba56d4ce8f518848ff75765255f9d0ec40d")]
 [assembly: System.Reflection.AssemblyProductAttribute("TiaMcpV2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TiaMcpV2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.0.0")]

@@ -51,5 +51,6 @@ namespace TiaMcpV2.Core
         public static BlockAutonomyService BlockAutonomy => Get<BlockAutonomyService>();
         public static LadFbdGeneratorService LadFbdGenerator => Get<LadFbdGeneratorService>();
         public static ServoDriveService ServoDrive => Get<ServoDriveService>();
+        public static CpuSelectorService CpuSelector => Get<CpuSelectorService>();
     }
 }
