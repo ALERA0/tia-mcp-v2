@@ -392,14 +392,28 @@ namespace TiaMcpV2.Services
             if (currentValue == null) return value;
 
             var targetType = currentValue.GetType();
-            var strValue = value.ToString();
+            var strValue = value?.ToString() ?? "";
 
+            // Handle hardware reference (IEngineeringObject / DeviceItem / PlcTag)
+            // If current value is an IEngineeringObject, string input must be resolved to the actual object
+            if (value is string pathStr && currentValue is IEngineeringObject)
+            {
+                var resolved = ResolveHardwareReference(pathStr, targetType);
+                if (resolved != null)
+                    return resolved;
+            }
+
+            // If value is already the right type
+            if (value != null && targetType.IsInstanceOfType(value))
+                return value;
+
+            // Handle primitive conversions
             try
             {
                 if (targetType == typeof(double))
-                    return double.Parse(strValue);
+                    return double.Parse(strValue, System.Globalization.CultureInfo.InvariantCulture);
                 if (targetType == typeof(float))
-                    return float.Parse(strValue);
+                    return float.Parse(strValue, System.Globalization.CultureInfo.InvariantCulture);
                 if (targetType == typeof(int))
                     return int.Parse(strValue);
                 if (targetType == typeof(bool))
@@ -408,10 +422,138 @@ namespace TiaMcpV2.Services
                     return long.Parse(strValue);
                 if (targetType == typeof(uint))
                     return uint.Parse(strValue);
+                if (targetType == typeof(short))
+                    return short.Parse(strValue);
+                if (targetType == typeof(byte))
+                    return byte.Parse(strValue);
+                if (targetType == typeof(TimeSpan))
+                    return TimeSpan.Parse(strValue);
+                if (targetType.IsEnum)
+                    return Enum.Parse(targetType, strValue, true);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning("Failed to convert value '{Val}' to {Type} for param '{Param}': {Err}",
+                    strValue, targetType.Name, param.Name, ex.Message);
+            }
 
-            return value;
+            return value!;
+        }
+
+        /// <summary>
+        /// Resolves a path string to a hardware reference object (DeviceItem, Channel, PlcTag, etc.)
+        /// that can be assigned to TO parameters like Configuration.Module, Configuration.Channel.
+        /// </summary>
+        private object? ResolveHardwareReference(string path, Type expectedType)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+
+            // Strategy 1: Try as DeviceItem path
+            var deviceItem = _portal.FindDeviceItem(path);
+            if (deviceItem != null)
+            {
+                // If a channel index is appended like "PLC_1/TM Count 1x24V/Ch0"
+                // or "PLC_1/TM Count 1x24V[0]", try to locate channel
+                if (expectedType.Name.Contains("Channel"))
+                {
+                    // Try GetService<ChannelProvider> or find via device item sub-items
+                    foreach (var sub in deviceItem.DeviceItems)
+                    {
+                        if (expectedType.IsInstanceOfType(sub))
+                            return sub;
+                    }
+                }
+
+                if (expectedType.IsInstanceOfType(deviceItem))
+                    return deviceItem;
+
+                // If expected type is some kind of IEngineeringObject interface, DeviceItem likely fits
+                if (typeof(IEngineeringObject).IsAssignableFrom(expectedType))
+                    return deviceItem;
+            }
+
+            // Strategy 2: Try as channel path "Module/Ch0" or "Module[0]"
+            if (path.Contains("/Ch") || path.Contains("[") || path.Contains("_Ch"))
+            {
+                var idx = path.LastIndexOfAny(new[] { '/', '[' });
+                if (idx > 0)
+                {
+                    var modulePath = path.Substring(0, idx);
+                    var channelPart = path.Substring(idx + 1).TrimEnd(']');
+                    var module = _portal.FindDeviceItem(modulePath);
+                    if (module != null)
+                    {
+                        // Try to find a sub-item matching the channel name
+                        var subItem = module.DeviceItems.FirstOrDefault(di =>
+                            di.Name.Equals(channelPart, StringComparison.OrdinalIgnoreCase) ||
+                            di.Name.EndsWith($"_{channelPart}", StringComparison.OrdinalIgnoreCase));
+                        if (subItem != null)
+                            return subItem;
+
+                        // Try by channel index
+                        if (int.TryParse(channelPart.TrimStart('C', 'h'), out int channelIdx))
+                        {
+                            if (channelIdx < module.DeviceItems.Count)
+                                return module.DeviceItems.ElementAt(channelIdx);
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Set a TO parameter to a hardware reference (DeviceItem/Module/Channel).
+        /// Use this for parameters like Configuration.Module that require IEngineeringObject references.
+        /// </summary>
+        public void SetToHardwareReference(string softwarePath, string toName, string parameterName, string deviceItemPath)
+        {
+            var sw = _blockService.GetPlcSoftware(softwarePath);
+            var to = FindTO(sw, toName);
+            if (to == null)
+                throw new PortalException(PortalErrorCode.NotFound, $"Technology Object not found: {toName}");
+
+            var deviceItem = _portal.FindDeviceItem(deviceItemPath);
+            if (deviceItem == null)
+                throw new PortalException(PortalErrorCode.NotFound, $"Device item not found: {deviceItemPath}");
+
+            // Navigate parameter path like "Configuration.Module" or "Actor.Interface.Module"
+            var paramParts = parameterName.Split('.');
+            var param = to.Parameters.FirstOrDefault(p =>
+                p.Name.Equals(paramParts[0], StringComparison.OrdinalIgnoreCase));
+
+            if (param != null)
+            {
+                try
+                {
+                    // Direct assignment — TO params accept IEngineeringObject
+                    param.Value = deviceItem;
+                    _logger?.LogInformation("Set TO hardware ref {TO}.{Param} → {HW}",
+                        toName, parameterName, deviceItemPath);
+                    return;
+                }
+                catch (Exception exDirect)
+                {
+                    _logger?.LogWarning("Direct assignment failed for {Param}: {Err}. Trying SetAttribute...",
+                        parameterName, exDirect.Message);
+                }
+            }
+
+            // Fallback: SetAttribute on TO (navigates dotted path internally)
+            try
+            {
+                to.SetAttribute(parameterName, deviceItem);
+                _logger?.LogInformation("Set TO attribute {TO}.{Attr} → {HW}",
+                    toName, parameterName, deviceItemPath);
+                return;
+            }
+            catch (Exception ex)
+            {
+                throw new PortalException(PortalErrorCode.OperationFailed,
+                    $"Failed to set hardware reference '{parameterName}' = '{deviceItemPath}': {ex.Message}. " +
+                    $"Try using connect_to_to_hardware for axis/counter connections instead.", ex);
+            }
         }
 
         #endregion

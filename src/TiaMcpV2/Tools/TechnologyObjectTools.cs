@@ -265,6 +265,24 @@ namespace TiaMcpV2.Tools
                 return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message });
             }
         }
+        [McpServerTool(Name = "set_to_hardware_reference"), Description("Set a TO parameter that expects a hardware reference (IBrowsable / DeviceItem). Use this for parameters like Configuration.Module, Actor.Interface.Module, Sensor[1].Interface.Module that need a module/channel reference instead of a value. This solves the 'IBrowsable reference needed' error. Example: set_to_hardware_reference('PLC_1', 'HSC_1', 'Configuration.Module', 'PLC_1/TM Count 1x24V_1')")]
+        public static string SetToHardwareReference(
+            string softwarePath,
+            string toName,
+            string parameterName,
+            string deviceItemPath)
+        {
+            try
+            {
+                ServiceAccessor.TechObjects.SetToHardwareReference(softwarePath, toName, parameterName, deviceItemPath);
+                return JsonHelper.ToJson(new ResponseMessage { Success = true, Message = $"Set {toName}.{parameterName} → {deviceItemPath}" });
+            }
+            catch (Exception ex)
+            {
+                return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message });
+            }
+        }
+
         [McpServerTool(Name = "connect_to_to_hardware"), Description("Connect a Technology Object to a hardware module. This is ESSENTIAL after creating a TO — links it to the physical device (Counter module, Drive, Encoder, etc.). connectionType: 'auto' (tries all), 'actor'/'drive' (drive output), 'sensor'/'encoder' (encoder input), 'counter'/'measuringInput', 'outputCam', 'torque'. Example: connect_to_to_hardware('PLC_1', 'HSC_1', 'PLC_1/TM Count 1x24V', 'counter')")]
         public static string ConnectToToHardware(
             string softwarePath,
