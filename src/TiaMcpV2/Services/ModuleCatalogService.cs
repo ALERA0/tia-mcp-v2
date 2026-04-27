@@ -317,6 +317,170 @@ namespace TiaMcpV2.Services
                     Tags = new[]{"ruggedcom","substation","extreme-environment"} },
             });
 
+            // ────────────── HMI: BASIC PANELS (KTP series) ──────────────
+            list.AddRange(new[]
+            {
+                new ModuleSpec { OrderNumber = "6AV2 123-2DB03-0AX0", Description = "KTP400 Basic (4\" mono touch)", Category = "HMI", SubCategory = "Basic", Family = "HMI",
+                    Tags = new[]{"HMI","Basic","KTP400","4inch","mono","touch"},
+                    Parameters = new[]{"DeviceName","IpAddress","Resolution","ScreenSaver","Brightness"} },
+                new ModuleSpec { OrderNumber = "6AV2 123-2GB03-0AX0", Description = "KTP700 Basic (7\" color touch)", Category = "HMI", SubCategory = "Basic", Family = "HMI",
+                    Tags = new[]{"HMI","Basic","KTP700","7inch","color","touch"} },
+                new ModuleSpec { OrderNumber = "6AV2 123-2GA03-0AX0", Description = "KTP700 Basic DP (7\" color, PROFIBUS)", Category = "HMI", SubCategory = "Basic", Family = "HMI",
+                    Tags = new[]{"HMI","Basic","KTP700","PROFIBUS"} },
+                new ModuleSpec { OrderNumber = "6AV2 123-2JB03-0AX0", Description = "KTP900 Basic (9\" color touch)", Category = "HMI", SubCategory = "Basic", Family = "HMI",
+                    Tags = new[]{"HMI","Basic","KTP900","9inch"} },
+                new ModuleSpec { OrderNumber = "6AV2 123-2MB03-0AX0", Description = "KTP1200 Basic (12\" color touch)", Category = "HMI", SubCategory = "Basic", Family = "HMI",
+                    Tags = new[]{"HMI","Basic","KTP1200","12inch"} },
+
+                // ────────────── HMI: COMFORT PANELS ──────────────
+                new ModuleSpec { OrderNumber = "6AV2 124-1DC01-0AX0", Description = "TP700 Comfort (7\" widescreen touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI",
+                    Tags = new[]{"HMI","Comfort","TP700","7inch","widescreen","touch"},
+                    Parameters = new[]{"DeviceName","IpAddress","Resolution","SDCardPath","WebServer","DataLogging","Recipes"} },
+                new ModuleSpec { OrderNumber = "6AV2 124-1GC01-0AX0", Description = "TP900 Comfort (9\" widescreen touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 124-0JC01-0AX0", Description = "TP1200 Comfort (12\" widescreen touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 124-0MC01-0AX0", Description = "TP1500 Comfort (15\" widescreen touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 124-0QC02-0AX0", Description = "TP1900 Comfort (19\" widescreen touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 124-0XC02-0AX0", Description = "TP2200 Comfort (22\" widescreen touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 124-1JC01-0AX0", Description = "KP700 Comfort (7\" key-touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI",
+                    Tags = new[]{"HMI","Comfort","keypad","KP700"} },
+                new ModuleSpec { OrderNumber = "6AV2 124-1MC01-0AX0", Description = "KP900 Comfort (9\" key-touch)", Category = "HMI", SubCategory = "Comfort", Family = "HMI" },
+
+                // ────────────── HMI: UNIFIED COMFORT PANELS ──────────────
+                new ModuleSpec { OrderNumber = "6AV2 128-3GB06-0AX0", Description = "MTP700 Unified Comfort (7\" web-based)", Category = "HMI", SubCategory = "Unified Comfort", Family = "HMI",
+                    Tags = new[]{"HMI","Unified","MTP700","HTML5","WinCC Unified","web-based"},
+                    Parameters = new[]{"DeviceName","IpAddress","Resolution","HttpsCertificate","WebServerPort","UserManagement"} },
+                new ModuleSpec { OrderNumber = "6AV2 128-3JB06-0AX0", Description = "MTP1000 Unified Comfort (10\" web)", Category = "HMI", SubCategory = "Unified Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 128-3MB06-0AX0", Description = "MTP1500 Unified Comfort (15\" web)", Category = "HMI", SubCategory = "Unified Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 128-3QB06-0AX0", Description = "MTP1900 Unified Comfort (19\" web)", Category = "HMI", SubCategory = "Unified Comfort", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV2 128-3XB06-0AX0", Description = "MTP2200 Unified Comfort (22\" web)", Category = "HMI", SubCategory = "Unified Comfort", Family = "HMI" },
+
+                // ────────────── HMI: MOBILE PANELS ──────────────
+                new ModuleSpec { OrderNumber = "6AV2 125-2GB03-0AX0", Description = "KTP700 F Mobile (7\" handheld, e-stop, enable)", Category = "HMI", SubCategory = "Mobile", Family = "HMI",
+                    Tags = new[]{"HMI","Mobile","KTP700F","handheld","E-Stop","enable-button","Safety","PROFIsafe"},
+                    Parameters = new[]{"DeviceName","IpAddress","FAddress","SafetyPassword"} },
+                new ModuleSpec { OrderNumber = "6AV2 125-2JB03-0AX0", Description = "KTP900 F Mobile (9\" handheld, e-stop, enable)", Category = "HMI", SubCategory = "Mobile", Family = "HMI" },
+                new ModuleSpec { OrderNumber = "6AV6 645-0DD01-0AX1", Description = "Mobile Panel 277F IWLAN (wireless safety)", Category = "HMI", SubCategory = "Mobile", Family = "HMI",
+                    Tags = new[]{"HMI","Mobile","wireless","WLAN","Safety"} },
+
+                // ────────────── HMI: SIMATIC IPC ──────────────
+                new ModuleSpec { OrderNumber = "6AG4 022-xxxxx", Description = "SIMATIC IPC127E (Box PC, fanless)", Category = "HMI", SubCategory = "IPC", Family = "IPC",
+                    Tags = new[]{"IPC","BoxPC","WinCC RT","industrial-PC"} },
+                new ModuleSpec { OrderNumber = "6AG4 131-xxxxx", Description = "SIMATIC IPC227E (Nanobox PC)", Category = "HMI", SubCategory = "IPC", Family = "IPC" },
+                new ModuleSpec { OrderNumber = "6AG4 141-xxxxx", Description = "SIMATIC IPC427E (Microbox PC)", Category = "HMI", SubCategory = "IPC", Family = "IPC" },
+                new ModuleSpec { OrderNumber = "6AV7 250-xxxxx", Description = "SIMATIC IPC677E Panel PC (15-22\")", Category = "HMI", SubCategory = "IPC", Family = "IPC",
+                    Tags = new[]{"IPC","Panel-PC","WinCC RT Pro","WinCC Unified PC"} },
+                new ModuleSpec { OrderNumber = "6AV7 240-xxxxx", Description = "SIMATIC IPC547G (Rack PC)", Category = "HMI", SubCategory = "IPC", Family = "IPC" },
+            });
+
+            // ────────────── DRIVES: SINAMICS G120 VARIANTS ──────────────
+            list.AddRange(new[]
+            {
+                // G120C - all-in-one compact
+                new ModuleSpec { OrderNumber = "6SL3 210-1KE13-2UB1", Description = "SINAMICS G120C 0.55kW PN (compact all-in-one)", Category = "Drive-VFD", SubCategory = "G120C", Family = "Drive",
+                    Tags = new[]{"VFD","G120C","compact","all-in-one","PROFINET","pump","fan","conveyor"},
+                    Parameters = new[]{"P0700","P0701","P1080","P1082","P1120","P1121","P1300","P2000","Telegram"} },
+                new ModuleSpec { OrderNumber = "6SL3 210-1KE13-8UB1", Description = "SINAMICS G120C 0.75kW PN", Category = "Drive-VFD", SubCategory = "G120C", Family = "Drive" },
+                new ModuleSpec { OrderNumber = "6SL3 210-1KE15-8UB1", Description = "SINAMICS G120C 2.2kW PN", Category = "Drive-VFD", SubCategory = "G120C", Family = "Drive" },
+                new ModuleSpec { OrderNumber = "6SL3 210-1KE17-5UB1", Description = "SINAMICS G120C 3kW PN", Category = "Drive-VFD", SubCategory = "G120C", Family = "Drive" },
+                new ModuleSpec { OrderNumber = "6SL3 210-1KE21-3UB1", Description = "SINAMICS G120C 5.5kW PN", Category = "Drive-VFD", SubCategory = "G120C", Family = "Drive" },
+
+                // G120D - distributed (IP65)
+                new ModuleSpec { OrderNumber = "6SL3 525-0PE17-5AA0", Description = "SINAMICS G120D 0.75kW PN IP65", Category = "Drive-VFD", SubCategory = "G120D", Family = "Drive",
+                    Tags = new[]{"VFD","G120D","distributed","IP65","field-mount","conveyor"} },
+                new ModuleSpec { OrderNumber = "6SL3 525-0PE21-1AA0", Description = "SINAMICS G120D 4kW PN IP65", Category = "Drive-VFD", SubCategory = "G120D", Family = "Drive" },
+
+                // G120X - water/wastewater
+                new ModuleSpec { OrderNumber = "6SL3 220-3YE12-0UB0", Description = "SINAMICS G120X 0.75kW (water/HVAC)", Category = "Drive-VFD", SubCategory = "G120X", Family = "Drive",
+                    Tags = new[]{"VFD","G120X","water","HVAC","ESP","essential-services"} },
+                new ModuleSpec { OrderNumber = "6SL3 220-3YE16-0UB0", Description = "SINAMICS G120X 2.2kW (water/HVAC)", Category = "Drive-VFD", SubCategory = "G120X", Family = "Drive" },
+                new ModuleSpec { OrderNumber = "6SL3 220-3YE20-0UB0", Description = "SINAMICS G120X 7.5kW (water/HVAC)", Category = "Drive-VFD", SubCategory = "G120X", Family = "Drive" },
+
+                // G115D - small distributed
+                new ModuleSpec { OrderNumber = "6SL3 200-6AE10-0AA0", Description = "SINAMICS G115D 0.75kW (compact distributed)", Category = "Drive-VFD", SubCategory = "G115D", Family = "Drive",
+                    Tags = new[]{"VFD","G115D","compact","intralogistics","conveyor"} },
+            });
+
+            // ────────────── DRIVES: SINAMICS S120 ──────────────
+            list.AddRange(new[]
+            {
+                new ModuleSpec { OrderNumber = "6SL3 100-0BE21-6AB0", Description = "SINAMICS S120 CU310-2 PN (Control Unit)", Category = "Drive-Servo", SubCategory = "S120", Family = "Drive",
+                    Tags = new[]{"Servo","S120","CU310-2","single-axis","high-performance","motion","PROFINET-IRT"},
+                    Parameters = new[]{"P0700","P1000","P1500","P2000","Telegram","SafetyIntegration"} },
+                new ModuleSpec { OrderNumber = "6SL3 040-1MA01-0AA0", Description = "SINAMICS S120 CU320-2 PN (multi-axis)", Category = "Drive-Servo", SubCategory = "S120", Family = "Drive",
+                    Tags = new[]{"Servo","S120","CU320-2","multi-axis","up-to-6-axes","DRIVE-CLiQ"} },
+                new ModuleSpec { OrderNumber = "6SL3 120-1TE21-0AC0", Description = "SINAMICS S120 Single Motor Module 9A", Category = "Drive-Servo", SubCategory = "S120", Family = "Drive",
+                    Tags = new[]{"Servo","S120","motor-module","DRIVE-CLiQ"} },
+                new ModuleSpec { OrderNumber = "6SL3 120-1TE21-8AC0", Description = "SINAMICS S120 Single Motor Module 18A", Category = "Drive-Servo", SubCategory = "S120", Family = "Drive" },
+                new ModuleSpec { OrderNumber = "6SL3 120-2TE21-0AC0", Description = "SINAMICS S120 Double Motor Module 9A/9A", Category = "Drive-Servo", SubCategory = "S120", Family = "Drive" },
+            });
+
+            // ────────────── SIMOTICS MOTOR FAMILIES ──────────────
+            list.AddRange(new[]
+            {
+                // SIMOTICS S-1FK7 (Servo, Compact)
+                new ModuleSpec { OrderNumber = "1FK7022-5AK71", Description = "SIMOTICS S-1FK7022 0.4kW 6000rpm 1.0Nm", Category = "Motor-Servo", SubCategory = "1FK7", Family = "Motor",
+                    Tags = new[]{"motor","servo","1FK7","compact","permanent-magnet"} },
+                // SIMOTICS S-1FT7 (Servo, High-dynamic)
+                new ModuleSpec { OrderNumber = "1FT7034-5AK71", Description = "SIMOTICS S-1FT7034 1.0kW high-dynamic", Category = "Motor-Servo", SubCategory = "1FT7", Family = "Motor" },
+                // SIMOTICS GP (Asynchronous, general purpose)
+                new ModuleSpec { OrderNumber = "1LE1003-1BB52-2AA4", Description = "SIMOTICS GP 1LE1 0.55kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor",
+                    Tags = new[]{"motor","asynchronous","general-purpose","IE3","IE4","squirrel-cage"} },
+                new ModuleSpec { OrderNumber = "1LE1003-1CA52-2AA4", Description = "SIMOTICS GP 1LE1 0.75kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor" },
+                new ModuleSpec { OrderNumber = "1LE1003-1DB52-2AA4", Description = "SIMOTICS GP 1LE1 1.5kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor" },
+                new ModuleSpec { OrderNumber = "1LE1003-1EB52-2AA4", Description = "SIMOTICS GP 1LE1 2.2kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor" },
+                new ModuleSpec { OrderNumber = "1LE1003-2DA52-2AA4", Description = "SIMOTICS GP 1LE1 4kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor" },
+                new ModuleSpec { OrderNumber = "1LE1003-2DB52-2AA4", Description = "SIMOTICS GP 1LE1 5.5kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor" },
+                new ModuleSpec { OrderNumber = "1LE1003-3AA52-2AA4", Description = "SIMOTICS GP 1LE1 7.5kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor" },
+                new ModuleSpec { OrderNumber = "1LE1003-3AB52-2AA4", Description = "SIMOTICS GP 1LE1 11kW 1500rpm IE3", Category = "Motor-VFD", SubCategory = "1LE1", Family = "Motor" },
+                // SIMOTICS HV
+                new ModuleSpec { OrderNumber = "1LA8XXX", Description = "SIMOTICS HV 1LA8 (high-voltage motors 1MW+)", Category = "Motor-VFD", SubCategory = "1LA8", Family = "Motor",
+                    Tags = new[]{"motor","high-voltage","industry","large-power"} },
+                // SIMOTICS XP (Hazardous areas)
+                new ModuleSpec { OrderNumber = "1MJ7XXX", Description = "SIMOTICS XP 1MJ (Ex-protected ATEX)", Category = "Motor-VFD", SubCategory = "1MJ", Family = "Motor",
+                    Tags = new[]{"motor","Ex-protection","ATEX","hazardous-area"} },
+            });
+
+            // ────────────── SAFETY: RELAYS, BUTTONS, LIGHT CURTAINS ──────────────
+            list.AddRange(new[]
+            {
+                // SIRIUS 3SK1 Safety Relays (basic)
+                new ModuleSpec { OrderNumber = "3SK1 111-1AB30", Description = "SIRIUS 3SK1 Basic safety relay (E-Stop monitor)", Category = "Safety", SubCategory = "Safety-Relay", Family = "Safety",
+                    Tags = new[]{"safety-relay","3SK1","E-Stop","SIL3","PLe","ISO 13849"},
+                    Parameters = new[]{"OperatingMode","StartType","DiscrepancyTime"} },
+                new ModuleSpec { OrderNumber = "3SK1 122-1AB40", Description = "SIRIUS 3SK1 Standard (light curtain monitor)", Category = "Safety", SubCategory = "Safety-Relay", Family = "Safety" },
+                // SIRIUS 3SK2 Modular Safety
+                new ModuleSpec { OrderNumber = "3SK2 111-1AA10", Description = "SIRIUS 3SK2 Advanced modular safety system", Category = "Safety", SubCategory = "Safety-Relay", Family = "Safety",
+                    Tags = new[]{"safety-relay","3SK2","modular","SIL3","PLe","programmable"} },
+                // E-Stop buttons
+                new ModuleSpec { OrderNumber = "3SU1 050-1HB20-0AA0", Description = "SIRIUS 3SU E-Stop button 22mm red mushroom", Category = "Safety", SubCategory = "E-Stop", Family = "Safety",
+                    Tags = new[]{"E-Stop","emergency-stop","button","22mm","red","mushroom"} },
+                new ModuleSpec { OrderNumber = "3SU1 100-1HB20-1FA0", Description = "SIRIUS 3SU illuminated E-Stop", Category = "Safety", SubCategory = "E-Stop", Family = "Safety" },
+                new ModuleSpec { OrderNumber = "3SE5 132-0PC02", Description = "SIRIUS 3SE5 safety position switch", Category = "Safety", SubCategory = "Safety-Switch", Family = "Safety",
+                    Tags = new[]{"safety-switch","position-switch","door","mechanical"} },
+                // F-Door switches
+                new ModuleSpec { OrderNumber = "3SE63 14-0BB", Description = "SIRIUS 3SE63 RFID safety door switch", Category = "Safety", SubCategory = "Safety-Switch", Family = "Safety",
+                    Tags = new[]{"safety-switch","RFID","coded","tamper-proof","PLe"} },
+                new ModuleSpec { OrderNumber = "3SE7 140-1BD11", Description = "SIRIUS 3SE7 safety hinge switch", Category = "Safety", SubCategory = "Safety-Switch", Family = "Safety" },
+                // Cable-pull switches
+                new ModuleSpec { OrderNumber = "3SE7 140-1BG31", Description = "SIRIUS 3SE7 cable-pull e-stop switch", Category = "Safety", SubCategory = "Safety-Switch", Family = "Safety",
+                    Tags = new[]{"cable-pull","rope-pull","E-Stop","conveyor"} },
+                // Two-hand controls
+                new ModuleSpec { OrderNumber = "3SB3 801-7AA0", Description = "SIRIUS 3SB3 two-hand control panel", Category = "Safety", SubCategory = "Safety-Control", Family = "Safety",
+                    Tags = new[]{"two-hand","press-control","TWO_HAND"} },
+                // Light curtains
+                new ModuleSpec { OrderNumber = "3RG7 8XX-XXAX", Description = "SIMATIC FS400 Type 4 light curtain (finger/hand protection)", Category = "Safety", SubCategory = "Light-Curtain", Family = "Safety",
+                    Tags = new[]{"light-curtain","Type 4","finger-detection","hand-detection","PLe"},
+                    Parameters = new[]{"Resolution","Range","Muting","Blanking","TestInputs"} },
+                new ModuleSpec { OrderNumber = "3RG7 9XX-XXAX", Description = "SIMATIC FS600 area scanner (laser scanner)", Category = "Safety", SubCategory = "Laser-Scanner", Family = "Safety",
+                    Tags = new[]{"laser-scanner","area-scanner","AGV","mobile-platform","PLe"} },
+                // Safety monitors / control units
+                new ModuleSpec { OrderNumber = "3RK1 405-0BG00-0AA2", Description = "SIRIUS 3RK1 ASIsafe monitor", Category = "Safety", SubCategory = "Safety-Monitor", Family = "Safety",
+                    Tags = new[]{"AS-i","ASIsafe","safety-monitor"} },
+                // Enabling switches
+                new ModuleSpec { OrderNumber = "3SU1 100-XXXX-XXXX", Description = "SIRIUS 3SU enabling switch (3-position)", Category = "Safety", SubCategory = "Safety-Control", Family = "Safety",
+                    Tags = new[]{"enabling-switch","3-position","jog-mode","ENABLE_SWITCH"} },
+            });
+
             return list;
         }
 
