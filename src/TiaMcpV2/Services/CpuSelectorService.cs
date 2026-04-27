@@ -439,6 +439,63 @@ namespace TiaMcpV2.Services
                     RelativePrice = 160, UseCase = "High-performance motion CPU"
                 },
 
+                // ─────────── S7-1500 TF (Safety + Technology) ───────────
+                new CpuSpec
+                {
+                    Name = "CPU 1515TF-2 PN", Family = "S7-1500 TF",
+                    OrderNumber = "6ES7 515-2UM01-0AB0", TypeIdentifier = "OrderNumber:6ES7 515-2UM01-0AB0/V2.9",
+                    WorkMemoryBytes = 1000 * 1024, LoadMemoryBytes = 5 * 1024 * 1024, RetentiveMemoryBytes = 306 * 1024,
+                    BitInstructionNs = 30, WordInstructionNs = 36, FloatInstructionNs = 48,
+                    ProfinetPorts = 2, ProfibusPorts = 0, MaxConnections = 256,
+                    MaxTechnologyObjects = 1600, SupportsMotion = true, IsFailsafe = true,
+                    RelativePrice = 110, UseCase = "Safety + Motion combined (TF) — packaging, robotics"
+                },
+                new CpuSpec
+                {
+                    Name = "CPU 1517TF-3 PN/DP", Family = "S7-1500 TF",
+                    OrderNumber = "6ES7 517-3UP00-0AB0", TypeIdentifier = "OrderNumber:6ES7 517-3UP00-0AB0/V2.9",
+                    WorkMemoryBytes = 4 * 1024 * 1024, LoadMemoryBytes = 8 * 1024 * 1024, RetentiveMemoryBytes = 306 * 1024,
+                    BitInstructionNs = 10, WordInstructionNs = 12, FloatInstructionNs = 16,
+                    ProfinetPorts = 2, ProfibusPorts = 1, MaxConnections = 384,
+                    MaxTechnologyObjects = 3200, SupportsMotion = true, IsFailsafe = true,
+                    RelativePrice = 220, UseCase = "High-end Safety + Motion (TF) for large machines"
+                },
+
+                // ─────────── S7-1500 R/H Redundant ───────────
+                new CpuSpec
+                {
+                    Name = "CPU 1513R-1 PN", Family = "S7-1500 R",
+                    OrderNumber = "6ES7 513-1RL00-0AB0", TypeIdentifier = "OrderNumber:6ES7 513-1RL00-0AB0/V3.1",
+                    WorkMemoryBytes = 300 * 1024, LoadMemoryBytes = 1 * 1024 * 1024, RetentiveMemoryBytes = 88 * 1024,
+                    BitInstructionNs = 40, WordInstructionNs = 48, FloatInstructionNs = 64,
+                    ProfinetPorts = 2, ProfibusPorts = 0, MaxConnections = 128,
+                    MaxTechnologyObjects = 800, SupportsMotion = false, IsFailsafe = false,
+                    IsRedundant = true,
+                    RelativePrice = 95, UseCase = "Redundant CPU (1+1 hot standby) — process plants"
+                },
+                new CpuSpec
+                {
+                    Name = "CPU 1515R-2 PN", Family = "S7-1500 R",
+                    OrderNumber = "6ES7 515-2RM00-0AB0", TypeIdentifier = "OrderNumber:6ES7 515-2RM00-0AB0/V3.1",
+                    WorkMemoryBytes = 750 * 1024, LoadMemoryBytes = 5 * 1024 * 1024, RetentiveMemoryBytes = 153 * 1024,
+                    BitInstructionNs = 30, WordInstructionNs = 36, FloatInstructionNs = 48,
+                    ProfinetPorts = 2, ProfibusPorts = 0, MaxConnections = 256,
+                    MaxTechnologyObjects = 1600, SupportsMotion = false, IsFailsafe = false,
+                    IsRedundant = true,
+                    RelativePrice = 130, UseCase = "Redundant CPU (1+1) for critical processes"
+                },
+                new CpuSpec
+                {
+                    Name = "CPU 1517H-3 PN", Family = "S7-1500 H",
+                    OrderNumber = "6ES7 517-3HP00-0AB0", TypeIdentifier = "OrderNumber:6ES7 517-3HP00-0AB0/V3.1",
+                    WorkMemoryBytes = 2 * 1024 * 1024, LoadMemoryBytes = 8 * 1024 * 1024, RetentiveMemoryBytes = 153 * 1024,
+                    BitInstructionNs = 10, WordInstructionNs = 12, FloatInstructionNs = 16,
+                    ProfinetPorts = 4, ProfibusPorts = 0, MaxConnections = 384,
+                    MaxTechnologyObjects = 3200, SupportsMotion = false, IsFailsafe = false,
+                    IsRedundant = true, IsHighRedundancy = true,
+                    RelativePrice = 280, UseCase = "Hi-Redundancy CPU (H — fiber-link sync) for critical industries"
+                },
+
                 // ─────────── ET 200SP CPU ───────────
                 new CpuSpec
                 {
@@ -499,6 +556,8 @@ namespace TiaMcpV2.Services
             public int MaxTechnologyObjects { get; set; }
             public bool SupportsMotion { get; set; }
             public bool IsFailsafe { get; set; }
+            public bool IsRedundant { get; set; }
+            public bool IsHighRedundancy { get; set; }
             public int IntegratedDI { get; set; }
             public int IntegratedDQ { get; set; }
             public int IntegratedAI { get; set; }

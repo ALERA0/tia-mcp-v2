@@ -52,5 +52,8 @@ namespace TiaMcpV2.Core
         public static LadFbdGeneratorService LadFbdGenerator => Get<LadFbdGeneratorService>();
         public static ServoDriveService ServoDrive => Get<ServoDriveService>();
         public static CpuSelectorService CpuSelector => Get<CpuSelectorService>();
+        public static ModuleCatalogService ModuleCatalog => Get<ModuleCatalogService>();
+        public static ModuleConfigService ModuleConfig => Get<ModuleConfigService>();
+        public static DistributedIoService DistributedIo => Get<DistributedIoService>();
     }
 }
