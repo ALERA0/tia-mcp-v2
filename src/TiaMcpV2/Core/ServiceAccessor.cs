@@ -63,5 +63,8 @@ namespace TiaMcpV2.Core
         public static TagManagementService TagManagement => Get<TagManagementService>();
         public static ObManagerService ObManager => Get<ObManagerService>();
         public static MotionControlService MotionControl => Get<MotionControlService>();
+        public static SafetyProgrammingService SafetyProgramming => Get<SafetyProgrammingService>();
+        public static HmiProgrammingService HmiProgramming => Get<HmiProgrammingService>();
+        public static CommunicationProtocolService CommProtocol => Get<CommunicationProtocolService>();
     }
 }
