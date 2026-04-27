@@ -66,5 +66,8 @@ namespace TiaMcpV2.Core
         public static SafetyProgrammingService SafetyProgramming => Get<SafetyProgrammingService>();
         public static HmiProgrammingService HmiProgramming => Get<HmiProgrammingService>();
         public static CommunicationProtocolService CommProtocol => Get<CommunicationProtocolService>();
+        public static DiagnosticsCommissioningService DiagnosticsCommissioning => Get<DiagnosticsCommissioningService>();
+        public static SimulationService Simulation => Get<SimulationService>();
+        public static ProjectManagementService ProjectManagement => Get<ProjectManagementService>();
     }
 }

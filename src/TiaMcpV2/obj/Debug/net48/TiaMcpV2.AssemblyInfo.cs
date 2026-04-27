@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TiaMcpV2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+30201f24d059238d5618b3d3354d69cee21a4e04")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6e8818ef71dae9574f80bf3c02a757316e4e6c44")]
 [assembly: System.Reflection.AssemblyProductAttribute("TiaMcpV2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TiaMcpV2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.0.0")]
