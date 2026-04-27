@@ -13,7 +13,7 @@
     },
     "tia-mcp-V2": {
       "type": "stdio",
-      "command": "C:\\Users\\alpar\\Desktop\\PLC\\TiaOpenessV2\\src\\TiaMcpV2\\bin\\Release\\net48-v7\\TiaMcpV2.exe",
+      "command": "C:\\Users\\alpar\\Desktop\\PLC\\TiaOpenessV2\\src\\TiaMcpV2\\bin\\Release\\net48-v9\\TiaMcpV2.exe",
       "args": [],
       "env": {}
     }

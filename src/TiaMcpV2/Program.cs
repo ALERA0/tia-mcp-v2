@@ -72,6 +72,11 @@ namespace TiaMcpV2
             builder.Services.AddSingleton<HmiSetupService>();
             builder.Services.AddSingleton<SafetyHardwareService>();
             builder.Services.AddSingleton<ProgrammingGuideService>();
+            builder.Services.AddSingleton<DataTypeService>();
+            builder.Services.AddSingleton<InstructionLibraryService>();
+            builder.Services.AddSingleton<TagManagementService>();
+            builder.Services.AddSingleton<ObManagerService>();
+            builder.Services.AddSingleton<MotionControlService>();
 
             // Configure MCP Server with stdio transport
             builder.Services
