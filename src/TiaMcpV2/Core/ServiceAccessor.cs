@@ -57,5 +57,6 @@ namespace TiaMcpV2.Core
         public static DistributedIoService DistributedIo => Get<DistributedIoService>();
         public static HmiSetupService HmiSetup => Get<HmiSetupService>();
         public static SafetyHardwareService SafetyHardware => Get<SafetyHardwareService>();
+        public static ProgrammingGuideService ProgrammingGuide => Get<ProgrammingGuideService>();
     }
 }
