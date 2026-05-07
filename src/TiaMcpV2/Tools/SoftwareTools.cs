@@ -78,5 +78,61 @@ using System.ComponentModel;
             }
             catch (Exception ex) { return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message }); }
         }
+
+        [McpServerTool(Name = "compile_hardware"), Description("Compile hardware (configuration) for a device. Equivalent to right-click device → Compile → Hardware. Returns error/warning count.")]
+        public static string CompileHardware(string deviceName)
+        {
+            try
+            {
+                var result = ServiceAccessor.Portal.CompileHardware(deviceName);
+                var messages = new List<object>();
+                int errors = 0, warnings = 0;
+
+                errors = result.ErrorCount;
+                warnings = result.WarningCount;
+                foreach (var msg in result.Messages)
+                {
+                    messages.Add(new Dictionary<string, object>
+                    {
+                        ["Description"] = msg.Description,
+                        ["DateTime"] = msg.DateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                        ["Path"] = msg.Path,
+                        ["State"] = msg.State.ToString()
+                    });
+                }
+
+                return JsonHelper.ToJson(new ResponseCompile
+                {
+                    Success = errors == 0,
+                    ErrorCount = errors,
+                    WarningCount = warnings,
+                    Messages = messages,
+                    Message = errors == 0 ? $"Hardware compile OK ({warnings} warnings)" : $"Hardware compile FAILED ({errors} errors)"
+                });
+            }
+            catch (Exception ex) { return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message }); }
+        }
+
+        [McpServerTool(Name = "compile_all"), Description("Compile EVERYTHING in the project — all hardware AND all software for ALL devices. Equivalent to TIA Portal's 'Edit → Compile → Hardware and software (rebuild all)'. Use this BEFORE downloading to ensure consistent compilation across the project. Returns per-device results with error/warning counts.")]
+        public static string CompileAll()
+        {
+            try
+            {
+                var result = ServiceAccessor.Portal.CompileAll();
+                return JsonHelper.ToJson(result);
+            }
+            catch (Exception ex) { return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message }); }
+        }
+
+        [McpServerTool(Name = "rebuild_all"), Description("Full rebuild — same as compile_all. Compiles hardware + software for all devices in the project (TIA Portal: Edit → Compile → Hardware and software, rebuild all).")]
+        public static string RebuildAll()
+        {
+            try
+            {
+                var result = ServiceAccessor.Portal.CompileAll();
+                return JsonHelper.ToJson(result);
+            }
+            catch (Exception ex) { return JsonHelper.ToJson(new ResponseMessage { Success = false, Message = ex.Message }); }
+        }
     }
 }

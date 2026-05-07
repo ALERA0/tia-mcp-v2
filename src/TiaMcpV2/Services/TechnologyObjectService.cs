@@ -519,9 +519,15 @@ namespace TiaMcpV2.Services
                 throw new PortalException(PortalErrorCode.NotFound, $"Device item not found: {deviceItemPath}");
 
             // Navigate parameter path like "Configuration.Module" or "Actor.Interface.Module"
-            var paramParts = parameterName.Split('.');
+            // First try full dotted name (TO params often store full path as Name), then fall back to first segment
             var param = to.Parameters.FirstOrDefault(p =>
-                p.Name.Equals(paramParts[0], StringComparison.OrdinalIgnoreCase));
+                p.Name.Equals(parameterName, StringComparison.OrdinalIgnoreCase));
+            if (param == null)
+            {
+                var paramParts = parameterName.Split('.');
+                param = to.Parameters.FirstOrDefault(p =>
+                    p.Name.Equals(paramParts[0], StringComparison.OrdinalIgnoreCase));
+            }
 
             if (param != null)
             {

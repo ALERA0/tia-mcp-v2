@@ -484,6 +484,145 @@ namespace TiaMcpV2.Core
             return compiler.Compile();
         }
 
+        /// <summary>
+        /// Compile hardware (configuration) for a device.
+        /// </summary>
+        public CompilerResult CompileHardware(string devicePath)
+        {
+            var (device, _) = ResolveDeviceFromPath(devicePath);
+            if (device == null)
+                throw new PortalException(PortalErrorCode.NotFound, $"Device not found: {devicePath}");
+
+            // Try ICompilable on the device (hardware compile)
+            var compiler = device.GetService<ICompilable>();
+            if (compiler == null)
+            {
+                // Try first DeviceItem (CPU)
+                foreach (var item in device.DeviceItems)
+                {
+                    compiler = item.GetService<ICompilable>();
+                    if (compiler != null) break;
+                }
+            }
+
+            if (compiler == null)
+                throw new PortalException(PortalErrorCode.NotSupported, "Hardware does not support compilation.");
+
+            return compiler.Compile();
+        }
+
+        /// <summary>
+        /// Compile EVERYTHING in the project — all hardware AND all software for all devices.
+        /// Equivalent to TIA Portal's "Edit → Compile → Hardware and software (rebuild all)".
+        /// </summary>
+        public Dictionary<string, object?> CompileAll()
+        {
+            EnsureProjectOpen();
+
+            var deviceResults = new List<Dictionary<string, object?>>();
+            int totalErrors = 0;
+            int totalWarnings = 0;
+
+            foreach (var device in _project!.Devices)
+            {
+                var deviceResult = new Dictionary<string, object?>
+                {
+                    ["DeviceName"] = device.Name,
+                    ["DeviceType"] = device.TypeIdentifier
+                };
+
+                // Compile hardware first
+                int hwErrors = 0, hwWarnings = 0;
+                try
+                {
+                    var hwCompiler = device.GetService<ICompilable>();
+                    if (hwCompiler == null)
+                    {
+                        foreach (var item in device.DeviceItems)
+                        {
+                            hwCompiler = item.GetService<ICompilable>();
+                            if (hwCompiler != null) break;
+                        }
+                    }
+
+                    if (hwCompiler != null)
+                    {
+                        var hwResult = hwCompiler.Compile();
+                        hwErrors = hwResult.ErrorCount;
+                        hwWarnings = hwResult.WarningCount;
+                        deviceResult["HardwareCompiled"] = true;
+                        deviceResult["HardwareErrors"] = hwErrors;
+                        deviceResult["HardwareWarnings"] = hwWarnings;
+                    }
+                    else
+                    {
+                        deviceResult["HardwareCompiled"] = false;
+                        deviceResult["HardwareSkipped"] = "No ICompilable service";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    deviceResult["HardwareCompileError"] = ex.Message;
+                }
+
+                // Compile software (PLC software inside the device, if any)
+                int swErrors = 0, swWarnings = 0;
+                try
+                {
+                    PlcSoftware? plcSw = null;
+                    foreach (var item in device.DeviceItems)
+                    {
+                        plcSw = GetSoftwareFrom(item);
+                        if (plcSw != null) break;
+                    }
+
+                    if (plcSw != null)
+                    {
+                        var swCompiler = plcSw.GetService<ICompilable>();
+                        if (swCompiler != null)
+                        {
+                            var swResult = swCompiler.Compile();
+                            swErrors = swResult.ErrorCount;
+                            swWarnings = swResult.WarningCount;
+                            deviceResult["SoftwareCompiled"] = true;
+                            deviceResult["SoftwareErrors"] = swErrors;
+                            deviceResult["SoftwareWarnings"] = swWarnings;
+                        }
+                    }
+                    else
+                    {
+                        deviceResult["SoftwareCompiled"] = false;
+                        deviceResult["SoftwareSkipped"] = "No PLC software";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    deviceResult["SoftwareCompileError"] = ex.Message;
+                }
+
+                int devTotal = hwErrors + swErrors;
+                int devWarn = hwWarnings + swWarnings;
+                totalErrors += devTotal;
+                totalWarnings += devWarn;
+                deviceResult["TotalErrors"] = devTotal;
+                deviceResult["TotalWarnings"] = devWarn;
+
+                deviceResults.Add(deviceResult);
+            }
+
+            return new Dictionary<string, object?>
+            {
+                ["Success"] = totalErrors == 0,
+                ["TotalErrors"] = totalErrors,
+                ["TotalWarnings"] = totalWarnings,
+                ["DeviceCount"] = deviceResults.Count,
+                ["Devices"] = deviceResults,
+                ["Status"] = totalErrors == 0
+                    ? $"Compile All successful ({totalWarnings} warnings)"
+                    : $"Compile All FAILED — {totalErrors} errors, {totalWarnings} warnings"
+            };
+        }
+
         #endregion
 
         #region IDisposable
